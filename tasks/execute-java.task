@@ -1,0 +1,10 @@
+{
+  "environment": "java",
+  "taskfs": "execute-java.sfs",
+  "limits": {
+    "time": 90,
+    "memory": 64,
+    "disk": 50,
+    "output": 1024
+  }
+}
