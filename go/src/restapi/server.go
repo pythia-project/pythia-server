@@ -24,12 +24,25 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// HealthInfo are the information about the health of the Pythia backend
+// HealthInfo are the informations about the health of the Pythia backend
 type HealthInfo struct {
 	Running bool `json:"running"`
 }
 
-// HealthHandler handles root /api/health
+// SubmisssionRequest are the informations about a submission request
+type SubmisssionRequest struct {
+	Tid   string `json:"tid"`
+	Input string `json:"input"`
+}
+
+// SubmisssionResult are the informations about a result of a submission
+type SubmisssionResult struct {
+	Tid    string `json:"tid"`
+	Status string `json:"status"`
+	Output string `json:"output"`
+}
+
+// HealthHandler handles route /api/health
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -48,9 +61,39 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// ExecuteHandler handles route /api/execute
+func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	request := SubmisssionRequest{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// TODO: send to pythia core
+
+	w.Header().Set("Content-Type", "application/json")
+	result := SubmisssionResult{request.Tid, "success", "Hello Pythia"}
+
+	data, err := json.Marshal(result)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/health", HealthHandler)
+	r.HandleFunc("/api/execute", ExecuteHandler)
 	server := &http.Server{
 		Handler:      r,
 		Addr:         "localhost:8080",
