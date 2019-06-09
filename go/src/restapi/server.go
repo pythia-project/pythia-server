@@ -17,9 +17,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/pythia-project/pythia-core/go/src/pythia"
 
 	"github.com/gorilla/mux"
 )
@@ -71,14 +74,46 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 	request := SubmisssionRequest{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
+		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// TODO: send to pythia core
+	// Connection to the pool and execution of the task
+	conn := pythia.DialRetry(pythia.QueueAddr)
+	defer conn.Close()
+
+	taskData := fmt.Sprintf(`{"environment": "python",
+  		"taskfs": "%v.sfs",
+  		"limits" :{
+  			"time":   60,
+  			"memory": 32,
+  			"disk":   50,
+  			"output": 1024
+  		}}`, request.Tid)
+
+	var task pythia.Task
+	err = json.Unmarshal([]byte(taskData), &task)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	conn.Send(pythia.Message{
+		Message: pythia.LaunchMsg,
+		Id:      "test",
+		Task:    &task,
+		Input:   request.Input,
+	})
+	msg, ok := <-conn.Receive()
+
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	result := SubmisssionResult{request.Tid, "success", "Hello Pythia"}
+	result := SubmisssionResult{request.Tid, string(msg.Status), msg.Output}
 
 	data, err := json.Marshal(result)
 	if err != nil {
