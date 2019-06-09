@@ -29,6 +29,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/health", handler.HealthHandler)
 	r.HandleFunc("/api/execute", handler.ExecuteHandler)
+	r.HandleFunc("/api/environments", handler.EnvironementsHandler)
 	server := &http.Server{
 		Handler:      r,
 		Addr:         "localhost:8080",
