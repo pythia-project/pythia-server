@@ -1,0 +1,4 @@
+github.com/gorilla/mux v1.7.2 h1:zoNxOV7WjqXptQOVngLmcSQgXmgk4NMz1HibBchjl/I=
+github.com/gorilla/mux v1.7.2/go.mod h1:1lud6UwP+6orDFRuTfBEV8e9/aOM/c4fVVCaMa2zaAs=
+github.com/pythia-project/pythia-core v0.0.0-20180722170813-3eabba8da4de h1:pD5zdVE79/5hXhjlp1Ju6SCWsLr/RKiwVtRe2dx1lCg=
+github.com/pythia-project/pythia-core v0.0.0-20180722170813-3eabba8da4de/go.mod h1:oMohf10Hy6TIRjPA4tgMm5v05ejB7W0kJOmlpIA7VGs=
