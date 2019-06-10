@@ -45,12 +45,19 @@ func main() {
 	loadEnvironments()
 	log.Printf("available environments: %v", server.Environments)
 	r := mux.NewRouter()
-	r.HandleFunc("/api/health", handler.HealthHandler)
-	r.HandleFunc("/api/execute", handler.ExecuteHandler).
-		Queries("async", "{async}")
-	r.HandleFunc("/api/execute", handler.ExecuteHandler)
+	r.HandleFunc("/api/health", handler.HealthHandler).
+		Methods("GET")
 
-	r.HandleFunc("/api/environments", handler.EnvironementsHandler)
+	r.HandleFunc("/api/execute", handler.ExecuteHandler).
+		Queries("async", "{async}").
+		Methods("POST")
+
+	r.HandleFunc("/api/execute", handler.ExecuteHandler).
+		Methods("POST")
+
+	r.HandleFunc("/api/environments", handler.EnvironementsHandler).
+		Methods("GET")
+
 	server := &http.Server{
 		Handler:      r,
 		Addr:         "localhost:8080",

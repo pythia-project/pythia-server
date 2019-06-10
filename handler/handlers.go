@@ -31,10 +31,6 @@ import (
 
 // HealthHandler handles route /api/health
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
 	conn, err := pythia.Dial(pythia.QueueAddr)
 	if err == nil {
@@ -54,11 +50,6 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 
 // ExecuteHandler handles route /api/execute
 func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
 	request := server.SubmisssionRequest{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -160,10 +151,6 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 
 // EnvironementsHandler handles route /api/environements
 func EnvironementsHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
 
 	w.Header().Set("Content-Type", "application/json")
 
