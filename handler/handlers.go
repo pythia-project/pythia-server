@@ -20,31 +20,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/pythia-project/pythia-core/go/src/pythia"
 	"github.com/pythia-project/pythia-server/server"
-
-	"github.com/gorilla/mux"
 )
-
-// HealthInfo are the informations about the health of the Pythia backend
-type HealthInfo struct {
-	Running bool `json:"running"`
-}
-
-// SubmisssionRequest are the informations about a submission request
-type SubmisssionRequest struct {
-	Tid   string `json:"tid"`
-	Input string `json:"input"`
-}
-
-// SubmisssionResult are the informations about a result of a submission
-type SubmisssionResult struct {
-	Tid    string `json:"tid"`
-	Status string `json:"status"`
-	Output string `json:"output"`
-}
 
 // HealthHandler handles route /api/health
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +32,7 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	info := HealthInfo{true}
+	info := server.HealthInfo{true}
 
 	data, err := json.Marshal(info)
 	if err != nil {
@@ -72,7 +51,7 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request := SubmisssionRequest{}
+	request := server.SubmisssionRequest{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		log.Println(err)
@@ -114,7 +93,7 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	result := SubmisssionResult{request.Tid, string(msg.Status), msg.Output}
+	result := server.SubmisssionResult{request.Tid, string(msg.Status), msg.Output}
 
 	data, err := json.Marshal(result)
 	if err != nil {
@@ -143,18 +122,4 @@ func EnvironementsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
-}
-
-func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/api/health", HealthHandler)
-	r.HandleFunc("/api/execute", ExecuteHandler)
-	server := &http.Server{
-		Handler:      r,
-		Addr:         "localhost:8080",
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-
-	log.Fatal(server.ListenAndServe())
 }
