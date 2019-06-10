@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -85,17 +86,17 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 	// Connection to the pool and execution of the task
 	conn := pythia.DialRetry(pythia.QueueAddr)
 
-	taskData := fmt.Sprintf(`{"environment": "python",
-  		"taskfs": "%v.sfs",
-  		"limits" :{
-  			"time":   60,
-  			"memory": 32,
-  			"disk":   50,
-  			"output": 1024
-  		}}`, request.Tid)
-
 	var task pythia.Task
-	err = json.Unmarshal([]byte(taskData), &task)
+
+	taskFolder := os.Getenv("PYTHIA_TASKPATH")
+	file, err := os.Open(fmt.Sprintf("%v/%v.task", taskFolder, request.Tid))
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = json.NewDecoder(file).Decode(&task)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
