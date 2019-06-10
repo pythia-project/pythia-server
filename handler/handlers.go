@@ -17,9 +17,12 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/pythia-project/pythia-core/go/src/pythia"
 	"github.com/pythia-project/pythia-server/server"
@@ -58,10 +61,25 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	var async bool
+	if r.FormValue("async") == "" {
+		async = false
+	} else {
+		async, err = strconv.ParseBool(r.FormValue("async"))
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
+	if async && request.Callback == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	// Connection to the pool and execution of the task
 	conn := pythia.DialRetry(pythia.QueueAddr)
-	defer conn.Close()
 
 	taskData := fmt.Sprintf(`{"environment": "python",
   		"taskfs": "%v.sfs",
@@ -76,7 +94,7 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal([]byte(taskData), &task)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	conn.Send(pythia.Message{
@@ -85,24 +103,54 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 		Task:    &task,
 		Input:   request.Input,
 	})
-	msg, ok := <-conn.Receive()
 
-	if !ok {
-		w.WriteHeader(http.StatusInternalServerError)
+	receive := func() (res []byte, err error) {
+		msg, ok := <-conn.Receive()
+
+		if !ok {
+			err = errors.New("Pythia request failed")
+			return
+		}
+
+		result := server.SubmisssionResult{request.Tid, string(msg.Status), msg.Output}
+
+		res, err = json.Marshal(result)
+		if err != nil {
+			return
+		}
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	result := server.SubmisssionResult{request.Tid, string(msg.Status), msg.Output}
-
-	data, err := json.Marshal(result)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	if async {
+		go func() {
+			byteData, err := receive()
+			if err != nil {
+				log.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			conn.Close()
+			data := strings.NewReader(string(byteData))
+			postResponse, err := http.Post(request.Callback, "application/json", data)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			log.Println(postResponse)
+		}()
+	} else {
+		byteData, err := receive()
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		conn.Close()
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write(byteData)
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write(data)
 }
 
 // EnvironementsHandler handles route /api/environements

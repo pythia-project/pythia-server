@@ -27,8 +27,10 @@ type HealthInfo struct {
 
 // SubmisssionRequest are the informations about a submission request
 type SubmisssionRequest struct {
-	Tid   string `json:"tid"`
-	Input string `json:"input"`
+	Tid      string `json:"tid"`
+	Input    string `json:"input"`
+	Async    bool   `json:"async"`
+	Callback string `json:"callback"`
 }
 
 // SubmisssionResult are the informations about a result of a submission
