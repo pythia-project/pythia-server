@@ -74,11 +74,11 @@ Task execution
 
    :reqheader Accept: application/json
 
-   :query boolean async: whether results are directly sent in the response of the request or later to a callback URL
+   :query boolean async: whether results are directly sent in the response of the request or later to a callback URL (optional, default: false)
 
    :reqjson string tid: the identifier of the task to execute
-   :reqjson string input: the input for the task (optional, default: empty string)
-   :reqjson string callback: the callback URL to use for `async` mode (optional, default: false)
+   :reqjson string input: the input for the task (optional)
+   :reqjson string callback: the callback URL to use for `async` mode (optional)
 
    :resheader Content-Type: application/json
 
@@ -87,4 +87,4 @@ Task execution
    :resjson string output: the output created by the task execution
 
    :statuscode 200: task submitted for execution
-   :statuscode 400: bad request
+   :statuscode 400: bad request (missing parameters, wrong parameter type, task not existing)
