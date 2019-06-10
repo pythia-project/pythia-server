@@ -16,16 +16,34 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/pythia-project/pythia-server/handler"
+	"github.com/pythia-project/pythia-server/server"
 
 	"github.com/gorilla/mux"
 )
 
+func loadEnvironments() {
+	envsFolder := os.Getenv("PYTHIA_ENVPATH")
+	files, err := ioutil.ReadDir(envsFolder)
+	if err != nil {
+		log.Fatalln(err)
+		return
+	}
+
+	for _, f := range files {
+		server.Environments = append(server.Environments, server.Environement{Name: f.Name()})
+	}
+}
+
 func main() {
+	loadEnvironments()
+	log.Printf("available environments: %v", server.Environments)
 	r := mux.NewRouter()
 	r.HandleFunc("/api/health", handler.HealthHandler)
 	r.HandleFunc("/api/execute", handler.ExecuteHandler)
@@ -36,6 +54,5 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-
 	log.Fatal(server.ListenAndServe())
 }

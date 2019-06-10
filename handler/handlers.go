@@ -18,13 +18,12 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/pythia-project/pythia-core/go/src/pythia"
+	"github.com/pythia-project/pythia-server/server"
 
 	"github.com/gorilla/mux"
 )
@@ -32,11 +31,6 @@ import (
 // HealthInfo are the informations about the health of the Pythia backend
 type HealthInfo struct {
 	Running bool `json:"running"`
-}
-
-// Environement is the informations aboat an environment
-type Environement struct {
-	Name string `json:"name"`
 }
 
 // SubmisssionRequest are the informations about a submission request
@@ -139,21 +133,9 @@ func EnvironementsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	envsFolder := os.Getenv("PYTHIA_ENVPATH")
-	files, err := ioutil.ReadDir(envsFolder)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	envs := make([]Environement, 0)
-	for _, f := range files {
-		envs = append(envs, Environement{f.Name()})
-	}
 	w.Header().Set("Content-Type", "application/json")
 
-	data, err := json.Marshal(envs)
+	data, err := json.Marshal(server.Environments)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
