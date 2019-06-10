@@ -58,6 +58,8 @@ This documentation is split into two parts: the first one is targeter to users a
 .. toctree::
    :maxdepth: 1
    :caption: User's Documentation
+   
+   general
 
 
 .. toctree::
