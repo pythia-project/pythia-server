@@ -35,7 +35,11 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	info := server.HealthInfo{true}
+	conn, err := pythia.Dial(pythia.QueueAddr)
+	if err == nil {
+		conn.Close()
+	}
+	info := server.HealthInfo{err == nil}
 
 	data, err := json.Marshal(info)
 	if err != nil {
