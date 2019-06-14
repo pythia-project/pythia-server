@@ -8,6 +8,8 @@ Some `general routes` available on the API can be used to get a “raw” low-le
 Health information
 ------------------
 
+One route is available to get information about the health of the Pythia backbone and this API server itself. Basic information about the running status of different services can be obtained.
+
 .. http:get:: /api/health
 
    Health information about the Pythia backbone and this API server.
@@ -42,6 +44,8 @@ Health information
 
 Task execution
 --------------
+
+One route is available to ask to the Pythia backbone for the execution of a single task. The input and the output of the tasks are raw strings whose precise specification and format are defined for each task. The result of the execution, containing the Pythia status and the output, is either directly sent in the body of the response of this request (*sync mode*) or is sent later on to a callback URL that has been specified (*async mode*). For the latter case, the callback URL must point to a publicly available POST route.
 
 .. http:post:: /api/execute
 
