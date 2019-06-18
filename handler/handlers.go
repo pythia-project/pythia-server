@@ -79,7 +79,7 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 
 	var task pythia.Task
 
-	file, err := os.Open(fmt.Sprintf("%v/%v.task", server.TasksPath, request.Tid))
+	file, err := os.Open(fmt.Sprintf("%v/%v.task", server.Conf.Path.Tasks, request.Tid))
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusBadRequest)

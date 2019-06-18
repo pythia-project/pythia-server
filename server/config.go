@@ -16,25 +16,53 @@
 package server
 
 import (
+	"errors"
+	"net"
 	"os"
 
 	"github.com/pythia-project/pythia-core/go/src/pythia"
 )
 
-// Global configuration
-var (
-	// The address on which this server listens.
-	ServerAddr, _ = pythia.ParseAddr("0.0.0.0:8080")
+// Environments available on the Pythia backbone.
+var Environments = make([]Environment, 0)
 
-	// The address on which the queue listens.
-	QueueAddr, _ = pythia.ParseAddr("127.0.0.1:9000")
+// Conf contains the configuration for this server.
+var Conf Config = NewConfig()
 
-	// The path where to find the environments.
-	EnvironmentsPath = os.Getenv("PYTHIAPATH") + "/vm"
+// Config represents the configuration for this server.
+type Config struct {
+	Address struct {
+		Server Address
+		Queue  Address
+	}
 
-	// The path where to find the tasks.
-	TasksPath = os.Getenv("PYTHIAPATH") + "/tasks"
+	Path struct {
+		Environments string
+		Tasks        string
+	}
+}
 
-	// The environments available on the Pythia backbone.
-	Environments = make([]Environement, 0)
-)
+type Address struct {
+	*net.TCPAddr
+}
+
+func (d *Address) UnmarshalText(text []byte) error {
+	var err error
+	addr, err := pythia.ParseAddr(string(text))
+	if addr, ok := addr.(*net.TCPAddr); ok {
+		d.TCPAddr = addr
+	} else {
+		err = errors.New("Invalid address: " + string(text))
+	}
+	return err
+}
+
+// NewConfig creates a new configuration with default values.
+func NewConfig() Config {
+	conf := Config{}
+	conf.Address.Server.UnmarshalText([]byte("0.0.0.0:8080"))
+	conf.Address.Queue.UnmarshalText([]byte("127.0.0.1:9000"))
+	conf.Path.Environments = os.Getenv("PYTHIAPATH") + "/vm"
+	conf.Path.Tasks = os.Getenv("PYTHIAPATH") + "/tasks"
+	return conf
+}

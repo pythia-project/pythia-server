@@ -15,9 +15,12 @@
 
 package server
 
-// Environement is the informations aboat an environment
-type Environement struct {
-	Name string `json:"name"`
+// Environment is the description of an execution environment for the Pythia backbone.
+type Environment struct {
+	Envid       string   `json:"envid"`
+	Name        string   `json:"name"`
+	Authors     []string `json:"authors"`
+	Description string   `json:"description"`
 }
 
 // HealthInfo are the informations about the health of the Pythia backend

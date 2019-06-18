@@ -16,32 +16,47 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/pythia-project/pythia-server/handler"
 	"github.com/pythia-project/pythia-server/server"
 
+	"github.com/BurntSushi/toml"
 	"github.com/gorilla/mux"
 )
 
+func loadConfig() {
+	rawcfg, err := ioutil.ReadFile("config.toml")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Warning: unable to read configuration file:", err)
+		return
+	}
+	if _, err := toml.Decode(string(rawcfg), &server.Conf); err != nil {
+		fmt.Println(os.Stderr, "Error: malformed configuration file:", err)
+		return
+	}
+}
+
 func loadEnvironments() {
-	files, err := ioutil.ReadDir(server.EnvironmentsPath)
+	files, err := ioutil.ReadDir(server.Conf.Path.Environments)
 	if err != nil {
 		log.Fatalln(err)
 		return
 	}
 
 	for _, f := range files {
-		server.Environments = append(server.Environments, server.Environement{Name: f.Name()})
+		server.Environments = append(server.Environments, server.Environment{Name: f.Name()})
 	}
 }
 
 func main() {
+	loadConfig()
 	loadEnvironments()
-	log.Printf("available environments: %v", server.Environments)
 	r := mux.NewRouter()
 	r.HandleFunc("/api/health", handler.HealthHandler).
 		Methods("GET")
