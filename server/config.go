@@ -15,5 +15,26 @@
 
 package server
 
-// Environments are all the available environment for Pythia
-var Environments = make([]Environement, 0)
+import (
+	"os"
+
+	"github.com/pythia-project/pythia-core/go/src/pythia"
+)
+
+// Global configuration
+var (
+	// The address on which this server listens.
+	ServerAddr, _ = pythia.ParseAddr("0.0.0.0:8080")
+
+	// The address on which the queue listens.
+	QueueAddr, _ = pythia.ParseAddr("127.0.0.1:9000")
+
+	// The path where to find the environments.
+	EnvironmentsPath = os.Getenv("PYTHIAPATH") + "/vm"
+
+	// The path where to find the tasks.
+	TasksPath = os.Getenv("PYTHIAPATH") + "/tasks"
+
+	// The environments available on the Pythia backbone.
+	Environments = make([]Environement, 0)
+)

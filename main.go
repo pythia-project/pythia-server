@@ -19,7 +19,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/pythia-project/pythia-server/handler"
@@ -29,8 +28,7 @@ import (
 )
 
 func loadEnvironments() {
-	envsFolder := os.Getenv("PYTHIA_ENVPATH")
-	files, err := ioutil.ReadDir(envsFolder)
+	files, err := ioutil.ReadDir(server.EnvironmentsPath)
 	if err != nil {
 		log.Fatalln(err)
 		return
