@@ -73,9 +73,10 @@ func main() {
 
 	server := &http.Server{
 		Handler:      r,
-		Addr:         "localhost:8080",
+		Addr:         server.Conf.Address.Server.String(),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
+	log.Println("Listening to", server.Addr)
 	log.Fatal(server.ListenAndServe())
 }

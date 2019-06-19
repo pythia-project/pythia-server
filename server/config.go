@@ -46,6 +46,10 @@ type Address struct {
 	*net.TCPAddr
 }
 
+func (address Address) String() string {
+	return address.TCPAddr.String()
+}
+
 func (d *Address) UnmarshalText(text []byte) error {
 	var err error
 	addr, err := pythia.ParseAddr(string(text))
