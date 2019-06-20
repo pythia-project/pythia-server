@@ -71,6 +71,9 @@ func main() {
 	r.HandleFunc("/api/environments", handler.EnvironementsHandler).
 		Methods("GET")
 
+	r.HandleFunc("/api/tasks", handler.CreateTask).
+		Methods("POST")
+
 	server := &http.Server{
 		Handler:      r,
 		Addr:         server.Conf.Address.Server.String(),

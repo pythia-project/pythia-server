@@ -42,3 +42,40 @@ type SubmisssionResult struct {
 	Status string `json:"status"`
 	Output string `json:"output"`
 }
+
+// TaskCreationRequest is the description of a task creation request.
+type TaskCreationRequest struct {
+	Taskid      string      `json:"taskid"`
+	Environment string      `json:"environment"`
+	Type        string      `json:"type"`
+	Limits      Limits      `json:"limits"`
+	Config      interface{} `json:"config,omitempty"`
+}
+
+type Limits struct {
+	Time   int `json:"time"`
+	Memory int `json:"memory"`
+	Disk   int `json:"disk"`
+	Output int `json:"output"`
+}
+
+type UnitTestingTaskConfig struct {
+	Spec struct {
+		Name string `json:"name"`
+		Args []struct {
+			Name string `json:"name"`
+			Type string `json:"type"`
+		} `json:"args"`
+	} `json:"spec"`
+	Test struct {
+		Predefined []struct {
+			Data     string            `json:"data"`
+			Feedback map[string]string `json:"feedback"`
+		} `json:"predefined"`
+		Random struct {
+			N    int      `json:"n"`
+			Args []string `json:"args"`
+		} `json:"random"`
+	} `json:"test"`
+	Solution string `json:"solution"`
+}

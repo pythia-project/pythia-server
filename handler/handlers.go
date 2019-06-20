@@ -19,12 +19,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/pythia-project/pythia-core/go/src/pythia"
 	"github.com/pythia-project/pythia-server/server"
 )
@@ -161,4 +165,105 @@ func EnvironementsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+// CreateTask creates a new task.
+func CreateTask(w http.ResponseWriter, r *http.Request) {
+	request := server.TaskCreationRequest{
+		Type: "raw",
+		Limits: server.Limits{
+			Time:   60,
+			Memory: 32,
+			Disk:   50,
+			Output: 1024,
+		},
+	}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// Check whether a task with the same ID already exists
+	taskDir := fmt.Sprintf("%s/%s", server.Conf.Path.Tasks, request.Taskid)
+	taskFile := fmt.Sprintf("%s.task", taskDir)
+	if _, err := os.Stat(fmt.Sprintf("%s.task", taskDir)); err == nil {
+		log.Println("Task id", request.Taskid, "already exists.")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Create the task directory
+	if err := os.Mkdir(taskDir, 0755); err != nil {
+		log.Println("Impossible to create task directory:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Create the task file
+	task := pythia.Task{
+		Environment: request.Environment,
+		TaskFS:      request.Taskid + ".sfs",
+		Limits:      request.Limits,
+	}
+	file, _ := json.MarshalIndent(task, "", "  ")
+	_ = ioutil.WriteFile(taskFile, file, 0644)
+
+	// Copy the files from the template
+	if request.Type == "unit-testing" {
+		_ = os.Mkdir(taskDir+"/config", 0755)
+		_ = os.Mkdir(taskDir+"/scripts", 0755)
+		_ = os.Mkdir(taskDir+"/skeleton", 0755)
+		_ = os.Mkdir(taskDir+"/static", 0755)
+		_ = os.Mkdir(taskDir+"/static/lib", 0755)
+		templateDir := "templates/unit-testing/python"
+		_ = copyFile(templateDir+"/control", taskDir+"/control", 0755)
+		_ = copyFile(templateDir+"/scripts/preprocess.py", taskDir+"/scripts/preprocess.py", 0755)
+		_ = copyFile(templateDir+"/scripts/generate.py", taskDir+"/scripts/generate.py", 0755)
+		_ = copyFile(templateDir+"/scripts/execute.py", taskDir+"/scripts/execute.py", 0755)
+		_ = copyFile(templateDir+"/scripts/feedback.py", taskDir+"/scripts/feedback.py", 0755)
+		_ = copyFile(templateDir+"/static/lib/__init__.py", taskDir+"/static/lib/__init__.py", 0755)
+		_ = copyFile(templateDir+"/static/lib/pythia.py", taskDir+"/static/lib/pythia.py", 0755)
+	}
+
+	// Save the configuration
+	config := server.UnitTestingTaskConfig{}
+	if mapstructure.Decode(request.Config, &config) == nil {
+		file, _ := json.MarshalIndent(config.Spec, "", "  ")
+		_ = ioutil.WriteFile(taskDir+"/config/spec.json", file, 0644)
+		file, _ = json.MarshalIndent(config.Test, "", "  ")
+		_ = ioutil.WriteFile(taskDir+"/config/test.json", file, 0644)
+
+		// Create skeletons files
+		params := make([]string, 0)
+		for _, elem := range config.Spec.Args {
+			params = append(params, elem.Name)
+		}
+		content := fmt.Sprintf("# -*- coding: utf-8 -*-\n\ndef %s(%s):\n@  @f1@@", config.Spec.Name, strings.Join(params, ", "))
+		ioutil.WriteFile(taskDir+"/skeleton/program.py", []byte(content), 0755)
+
+		// Create solution file
+		ioutil.WriteFile(taskDir+"/config/solution", []byte(config.Solution), 0644)
+	}
+
+	// Compile the SFS
+	// mksquashfs TASK TASK.sfs -all-root -comp lzo -noappend
+	wd, _ := os.Getwd()
+	_ = os.Chdir(server.Conf.Path.Tasks)
+	exec.Command("mksquashfs", request.Taskid, request.Taskid+".sfs", "-all-root", "-comp", "lzo", "-noappend").Run()
+	_ = os.Chdir(wd)
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func copyFile(src string, dst string, perms os.FileMode) (err error) {
+	var from, to *os.File
+	if from, err = os.Open(src); err == nil {
+		defer from.Close()
+		if to, err = os.OpenFile(dst, os.O_RDWR|os.O_CREATE, perms); err == nil {
+			defer to.Close()
+			_, err = io.Copy(to, from)
+		}
+	}
+	return
 }
