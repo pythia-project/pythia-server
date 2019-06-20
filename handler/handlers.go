@@ -36,7 +36,7 @@ import (
 // HealthHandler handles route /api/health
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	conn, err := pythia.Dial(pythia.QueueAddr)
+	conn, err := pythia.Dial(server.Conf.Address.Queue)
 	if err == nil {
 		conn.Close()
 	}
@@ -79,7 +79,7 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Connection to the pool and execution of the task
-	conn := pythia.DialRetry(pythia.QueueAddr)
+	conn := pythia.DialRetry(server.Conf.Address.Queue)
 
 	var task pythia.Task
 
