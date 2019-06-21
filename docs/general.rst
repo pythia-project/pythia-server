@@ -58,6 +58,7 @@ One route is available to ask to the Pythia backbone for the execution of a sing
       POST /api/execute HTTP/1.1
       Host: example.com
       Accept: application/json
+      Content-Type: application/json
 
       {
         "tid": "hello-world"
@@ -77,6 +78,7 @@ One route is available to ask to the Pythia backbone for the execution of a sing
       }
 
    :reqheader Accept: application/json
+   :reqheader Content-Type: application/json
 
    :query boolean async: whether results are directly sent in the response of the request or later to a callback URL (optional, default: false)
 
