@@ -61,6 +61,7 @@ This documentation is split into two parts: the first one is targeter to users a
    
    general
    environments
+   tasks
 
 
 .. toctree::
