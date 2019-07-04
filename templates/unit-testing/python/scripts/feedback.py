@@ -52,7 +52,7 @@ config = []
 with open('/task/config/test.json', 'r', encoding='utf-8') as file:
   content = file.read()
   config = json.loads(content)
-  config = config['predefined']
+  config = config['predefined'] if 'predefined' in config else []
 (verdict, feedback) = TaskFeedbackSuite(config, spec).generate()
 
 # Retrieve task id
