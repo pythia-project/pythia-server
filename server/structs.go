@@ -70,8 +70,8 @@ type UnitTestingTaskConfig struct {
 	Test struct {
 		Predefined []struct {
 			Data     string            `json:"data"`
-			Feedback map[string]string `json:"feedback"`
-		} `json:"predefined"`
+			Feedback map[string]string `json:"feedback,omitempty"`
+		} `json:"predefined,omitempty"`
 		Random struct {
 			N    int      `json:"n"`
 			Args []string `json:"args"`
