@@ -20,13 +20,21 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import os
 import sys
 
 sys.path.append('/task/static')
 from lib import pythia
 
+# Try to import student code
 sys.path.append('/tmp/work')
-import program
+try:
+  import program
+except SyntaxError as e:
+  with open('/tmp/work/output/out.err', 'w', encoding='utf-8') as file:
+    (head, tail) = os.path.split(e.filename)
+    file.write('invalid syntax ({}, line {})'.format(tail, e.lineno - 3))
+  sys.exit(0)
 
 class TaskTestSuite(pythia.TestSuite):
   def __init__(self, spec):

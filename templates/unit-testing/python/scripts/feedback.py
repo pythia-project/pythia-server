@@ -26,6 +26,16 @@ import sys
 sys.path.append('/task/static')
 from lib import pythia
 
+# Retrieve task id
+with open('/tmp/work/tid', 'r', encoding='utf-8') as file:
+  tid = file.read()
+
+# Check if there are any syntax error
+if os.path.isfile('/tmp/work/output/out.err'):
+  with open('/tmp/work/output/out.err', 'r', encoding='utf-8') as file:
+    print(json.dumps({'tid': tid, 'status': 'error', 'message': file.read()}))
+    sys.exit(0)
+
 # Read function specification
 with open('/task/config/solution', 'r', encoding='utf-8') as file:
   os.makedirs('/tmp/work/scripts')
@@ -54,8 +64,4 @@ with open('/task/config/test.json', 'r', encoding='utf-8') as file:
   config = json.loads(content)
   config = config['predefined'] if 'predefined' in config else []
 (verdict, feedback) = TaskFeedbackSuite(config, spec).generate()
-
-# Retrieve task id
-with open('/tmp/work/tid', 'r', encoding='utf-8') as file:
-  tid = file.read()
 print(json.dumps({'tid': tid, 'status': 'success' if verdict else 'failed', 'feedback': feedback}))
