@@ -28,40 +28,39 @@ from lib import pythia
 
 # Retrieve task id
 with open('/tmp/work/tid', 'r', encoding='utf-8') as file:
-  tid = file.read()
+    tid = file.read()
 
 # Check if there are any syntax error
 if os.path.isfile('/tmp/work/output/out.err'):
-  with open('/tmp/work/output/out.err', 'r', encoding='utf-8') as file:
-    print(json.dumps({'tid': tid, 'status': 'error', 'message': file.read()}))
+    with open('/tmp/work/output/out.err', 'r', encoding='utf-8') as file:
+        print(json.dumps({'tid': tid, 'status': 'error', 'message': file.read()}))
     sys.exit(0)
 
 # Read function specification
 with open('/task/config/solution', 'r', encoding='utf-8') as file:
-  os.makedirs('/tmp/work/scripts')
-  pythia.fillSkeletons('/task/skeleton', '/tmp/work/scripts', {'f1': file.read()})
-  os.rename('/tmp/work/scripts/program.py', '/tmp/work/scripts/solution.py')
+    os.makedirs('/tmp/work/scripts')
+    pythia.fillSkeletons('/task/skeleton', '/tmp/work/scripts', {'f1': file.read()})
+    os.rename('/tmp/work/scripts/program.py', '/tmp/work/scripts/solution.py')
 
 sys.path.append('/tmp/work/scripts')
 import solution
 
 class TaskFeedbackSuite(pythia.FeedbackSuite):
-  def __init__(self, config, spec):
-    pythia.FeedbackSuite.__init__(self, '/tmp/work/input/data.csv', '/tmp/work/output/data.res', config, spec)
+    def __init__(self, config, spec):
+        pythia.FeedbackSuite.__init__(self, '/tmp/work/input/data.csv', '/tmp/work/output/data.res', config, spec)
 
-  def teacherCode(self, data):
-    return getattr(solution, spec['name'])(*data)
+    def teacherCode(self, data):
+        return getattr(solution, spec['name'])(*data)
 
 # Read function specification
 with open('/task/config/spec.json', 'r', encoding='utf-8') as file:
-  content = file.read()
-  spec = json.loads(content)
+    spec = json.loads(file.read())
 
 # Read test configuration
 config = []
 with open('/task/config/test.json', 'r', encoding='utf-8') as file:
-  content = file.read()
-  config = json.loads(content)
-  config = config['predefined'] if 'predefined' in config else []
+    config = json.loads(file.read())
+    config = config['predefined'] if 'predefined' in config else []
+
 (verdict, feedback) = TaskFeedbackSuite(config, spec).generate()
 print(json.dumps({'tid': tid, 'status': 'success' if verdict else 'failed', 'feedback': feedback}))

@@ -29,23 +29,22 @@ from lib import pythia
 # Try to import student code
 sys.path.append('/tmp/work')
 try:
-  import program
+    import program
 except SyntaxError as e:
-  with open('/tmp/work/output/out.err', 'w', encoding='utf-8') as file:
-    (head, tail) = os.path.split(e.filename)
-    file.write('invalid syntax ({}, line {})'.format(tail, e.lineno - 3))
-  sys.exit(0)
+    with open('/tmp/work/output/out.err', 'w', encoding='utf-8') as file:
+        (head, tail) = os.path.split(e.filename)
+        file.write('invalid syntax ({}, line {})'.format(tail, e.lineno - 3))
+    sys.exit(0)
 
 class TaskTestSuite(pythia.TestSuite):
-  def __init__(self, spec):
-    pythia.TestSuite.__init__(self, '/tmp/work/input/data.csv', spec)
+    def __init__(self, spec):
+        pythia.TestSuite.__init__(self, '/tmp/work/input/data.csv', spec)
 
-  def studentCode(self, data):
-    return getattr(program, spec['name'])(*data)
+    def studentCode(self, data):
+        return getattr(program, spec['name'])(*data)
 
 # Read function specification
 with open('/task/config/spec.json', 'r', encoding='utf-8') as file:
-  content = file.read()
-  spec = json.loads(content)
+    spec = json.loads(file.read())
 
 TaskTestSuite(spec).run('/tmp/work/output', 'data.res')

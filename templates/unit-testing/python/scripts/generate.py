@@ -27,6 +27,5 @@ from lib import pythia
 
 # Read test configuration and generate test data
 with open('/task/config/test.json', 'r', encoding='utf-8') as file:
-  content = file.read()
-  testconfig = json.loads(content)
-  pythia.generateTestData('/tmp/work/input', 'data.csv', testconfig)
+    testconfig = json.loads(file.read())
+    pythia.generateTestData('/tmp/work/input', 'data.csv', testconfig)
