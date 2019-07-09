@@ -58,4 +58,4 @@ with open('/task/config/test.json', 'r', encoding='utf-8') as file:
 # Retrieve task id
 with open('/tmp/work/tid', 'r', encoding='utf-8') as file:
   tid = file.read()
-print({'tid': tid, 'status': 'success' if verdict else 'failed', 'feedback': feedback})
+print(json.dumps({'tid': tid, 'status': 'success' if verdict else 'failed', 'feedback': feedback}))
