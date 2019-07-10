@@ -42,23 +42,11 @@ func loadConfig() {
 	}
 }
 
-func loadEnvironments() {
-	files, err := ioutil.ReadDir(server.Conf.Path.Environments)
-	if err != nil {
-		log.Fatalln(err)
-		return
-	}
-
-	for _, f := range files {
-		server.Environments = append(server.Environments, server.Environment{Name: f.Name()})
-	}
-}
-
 func main() {
 	loadConfig()
-	loadEnvironments()
+
 	r := mux.NewRouter()
-	r.HandleFunc("/api/environments", handler.EnvironementsHandler).Methods("GET")
+	r.HandleFunc("/api/environments", handler.ListEnvironments).Methods("GET")
 
 	r.HandleFunc("/api/execute", handler.ExecuteHandler).Queries("async", "{async}").Methods("POST")
 	r.HandleFunc("/api/execute", handler.ExecuteHandler).Methods("POST")

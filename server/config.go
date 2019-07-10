@@ -23,9 +23,6 @@ import (
 	"github.com/pythia-project/pythia-core/go/src/pythia"
 )
 
-// Environments available on the Pythia backbone.
-var Environments = make([]Environment, 0)
-
 // Conf contains the configuration for this server.
 var Conf Config = NewConfig()
 

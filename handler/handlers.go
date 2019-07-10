@@ -152,17 +152,29 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// EnvironementsHandler handles route /api/environements
-func EnvironementsHandler(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
-
-	data, err := json.Marshal(server.Environments)
+// ListEnvironments lists all the available environments.
+func ListEnvironments(w http.ResponseWriter, r *http.Request) {
+	files, err := ioutil.ReadDir(server.Conf.Path.Environments)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	environments := make([]server.Environment, 0)
+	for _, f := range files {
+		name := f.Name()
+		if strings.HasSuffix(name, ".sfs") {
+			environments = append(environments, server.Environment{Name: name[:len(name)-4]})
+		}
+	}
+
+	data, err := json.Marshal(environments)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
 }
@@ -177,8 +189,8 @@ func ListTasks(w http.ResponseWriter, r *http.Request) {
 
 	tasks := make([]server.Task, 0)
 	for _, f := range files {
-		if strings.HasSuffix(f.Name(), ".task") {
-			name := f.Name()
+		name := f.Name()
+		if strings.HasSuffix(name, ".task") {
 			tasks = append(tasks, server.Task{Taskid: name[:len(name)-5]})
 		}
 	}
