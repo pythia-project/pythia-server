@@ -58,18 +58,12 @@ func main() {
 	loadConfig()
 	loadEnvironments()
 	r := mux.NewRouter()
-	r.HandleFunc("/api/health", handler.HealthHandler).
-		Methods("GET")
+	r.HandleFunc("/api/environments", handler.EnvironementsHandler).Methods("GET")
 
-	r.HandleFunc("/api/execute", handler.ExecuteHandler).
-		Queries("async", "{async}").
-		Methods("POST")
+	r.HandleFunc("/api/execute", handler.ExecuteHandler).Queries("async", "{async}").Methods("POST")
+	r.HandleFunc("/api/execute", handler.ExecuteHandler).Methods("POST")
 
-	r.HandleFunc("/api/execute", handler.ExecuteHandler).
-		Methods("POST")
-
-	r.HandleFunc("/api/environments", handler.EnvironementsHandler).
-		Methods("GET")
+	r.HandleFunc("/api/health", handler.HealthHandler).Methods("GET")
 
 	r.HandleFunc("/api/tasks", handler.ListTasks).Methods("GET")
 	r.HandleFunc("/api/tasks", handler.CreateTask).Methods("POST")
@@ -80,6 +74,7 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
+
 	log.Println("Listening to", server.Addr)
 	log.Fatal(server.ListenAndServe())
 }
