@@ -167,6 +167,33 @@ func EnvironementsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// ListTasks lists all the available tasks.
+func ListTasks(w http.ResponseWriter, r *http.Request) {
+	files, err := ioutil.ReadDir(server.Conf.Path.Tasks)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	tasks := make([]server.Task, 0)
+	for _, f := range files {
+		if strings.HasSuffix(f.Name(), ".task") {
+			name := f.Name()
+			tasks = append(tasks, server.Task{Taskid: name[:len(name)-5]})
+		}
+	}
+
+	data, err := json.Marshal(tasks)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
 // CreateTask creates a new task.
 func CreateTask(w http.ResponseWriter, r *http.Request) {
 	request := server.TaskCreationRequest{

@@ -23,6 +23,14 @@ type Environment struct {
 	Description string   `json:"description"`
 }
 
+// Task is the description of a task for the Pythia backbone.
+type Task struct {
+	Taskid      string   `json:"taskid"`
+	Name        string   `json:"name,omitempty"`
+	Authors     []string `json:"authors,omitempty"`
+	Description string   `json:"description,omitempty"`
+}
+
 // HealthInfo are the informations about the health of the Pythia backend
 type HealthInfo struct {
 	Running bool `json:"running"`
