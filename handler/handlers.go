@@ -249,7 +249,24 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	_ = ioutil.WriteFile(taskFile, file, 0644)
 
 	// Copy the files from the template
-	if request.Type == "unit-testing" {
+	switch request.Type {
+	case "input-output":
+		_ = os.Mkdir(taskDir+"/config", 0755)
+		_ = os.Mkdir(taskDir+"/scripts", 0755)
+		_ = os.Mkdir(taskDir+"/skeleton", 0755)
+		templateDir := "templates/input-output/python"
+		_ = copyFile(templateDir+"/control", taskDir+"/control", 0755)
+		_ = copyFile(templateDir+"/scripts/pythia-iot", taskDir+"/scripts/pythia-iot", 0755)
+		_ = copyFile(templateDir+"/skeleton/program.py", taskDir+"/skeleton/program.py", 0755)
+
+		// Save the configuration
+		config := server.InputOutputTaskConfig{}
+		if mapstructure.Decode(request.Config, &config) == nil {
+			file, _ = json.MarshalIndent(config, "", "  ")
+			_ = ioutil.WriteFile(taskDir+"/config/test.json", file, 0644)
+		}
+
+	case "unit-testing":
 		_ = os.Mkdir(taskDir+"/config", 0755)
 		_ = os.Mkdir(taskDir+"/scripts", 0755)
 		_ = os.Mkdir(taskDir+"/skeleton", 0755)
@@ -263,26 +280,26 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		_ = copyFile(templateDir+"/scripts/feedback.py", taskDir+"/scripts/feedback.py", 0755)
 		_ = copyFile(templateDir+"/static/lib/__init__.py", taskDir+"/static/lib/__init__.py", 0755)
 		_ = copyFile(templateDir+"/static/lib/pythia.py", taskDir+"/static/lib/pythia.py", 0755)
-	}
 
-	// Save the configuration
-	config := server.UnitTestingTaskConfig{}
-	if mapstructure.Decode(request.Config, &config) == nil {
-		file, _ := json.MarshalIndent(config.Spec, "", "  ")
-		_ = ioutil.WriteFile(taskDir+"/config/spec.json", file, 0644)
-		file, _ = json.MarshalIndent(config.Test, "", "  ")
-		_ = ioutil.WriteFile(taskDir+"/config/test.json", file, 0644)
+		// Save the configuration
+		config := server.UnitTestingTaskConfig{}
+		if mapstructure.Decode(request.Config, &config) == nil {
+			file, _ := json.MarshalIndent(config.Spec, "", "  ")
+			_ = ioutil.WriteFile(taskDir+"/config/spec.json", file, 0644)
+			file, _ = json.MarshalIndent(config.Test, "", "  ")
+			_ = ioutil.WriteFile(taskDir+"/config/test.json", file, 0644)
 
-		// Create skeletons files
-		params := make([]string, 0)
-		for _, elem := range config.Spec.Args {
-			params = append(params, elem.Name)
+			// Create skeletons files
+			params := make([]string, 0)
+			for _, elem := range config.Spec.Args {
+				params = append(params, elem.Name)
+			}
+			content := fmt.Sprintf("# -*- coding: utf-8 -*-\n\ndef %s(%s):\n@  @f1@@", config.Spec.Name, strings.Join(params, ", "))
+			ioutil.WriteFile(taskDir+"/skeleton/program.py", []byte(content), 0755)
+
+			// Create solution file
+			ioutil.WriteFile(taskDir+"/config/solution", []byte(config.Solution), 0644)
 		}
-		content := fmt.Sprintf("# -*- coding: utf-8 -*-\n\ndef %s(%s):\n@  @f1@@", config.Spec.Name, strings.Join(params, ", "))
-		ioutil.WriteFile(taskDir+"/skeleton/program.py", []byte(content), 0755)
-
-		// Create solution file
-		ioutil.WriteFile(taskDir+"/config/solution", []byte(config.Solution), 0644)
 	}
 
 	// Compile the SFS

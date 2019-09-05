@@ -87,3 +87,11 @@ type UnitTestingTaskConfig struct {
 	} `json:"test"`
 	Solution string `json:"solution"`
 }
+
+type InputOutputTaskConfig struct {
+	Predefined []struct {
+		Input   string `json:"input"`
+		Output  string `json:"output"`
+		Message string `json:"message,omitempty"`
+	} `json:"predefined"`
+}
