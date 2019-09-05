@@ -254,10 +254,17 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		_ = os.Mkdir(taskDir+"/config", 0755)
 		_ = os.Mkdir(taskDir+"/scripts", 0755)
 		_ = os.Mkdir(taskDir+"/skeleton", 0755)
-		templateDir := "templates/input-output/python"
+
+		templateDir := "templates/input-output/" + request.Environment
 		_ = copyFile(templateDir+"/control", taskDir+"/control", 0755)
 		_ = copyFile(templateDir+"/scripts/pythia-iot", taskDir+"/scripts/pythia-iot", 0755)
-		_ = copyFile(templateDir+"/skeleton/program.py", taskDir+"/skeleton/program.py", 0755)
+
+		switch request.Environment {
+		case "python":
+			_ = copyFile(templateDir+"/skeleton/program.py", taskDir+"/skeleton/program.py", 0755)
+		case "php7":
+			_ = copyFile(templateDir+"/skeleton/program.php", taskDir+"/skeleton/program.php", 0755)
+		}
 
 		// Save the configuration
 		config := server.InputOutputTaskConfig{}
