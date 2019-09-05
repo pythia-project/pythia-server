@@ -264,6 +264,8 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 			_ = copyFile(templateDir+"/skeleton/program.py", taskDir+"/skeleton/program.py", 0755)
 		case "php7":
 			_ = copyFile(templateDir+"/skeleton/program.php", taskDir+"/skeleton/program.php", 0755)
+		case "nodejs":
+			_ = copyFile(templateDir+"/skeleton/program.js", taskDir+"/skeleton/program.js", 0755)
 		}
 
 		// Save the configuration
