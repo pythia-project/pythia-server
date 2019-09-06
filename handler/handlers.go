@@ -271,6 +271,8 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 			_ = copyFile(templateDir+"/skeleton/Program.java", taskDir+"/skeleton/Program.java", 0755)
 		case "bash":
 			_ = copyFile(templateDir+"/skeleton/program.sh", taskDir+"/skeleton/program.sh", 0755)
+		case "rexx":
+			_ = copyFile(templateDir+"/skeleton/program.rexx", taskDir+"/skeleton/program.rexx", 0755)
 		}
 
 		// Save the configuration
