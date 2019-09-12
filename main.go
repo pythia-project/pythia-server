@@ -47,6 +47,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/environments", handler.ListEnvironments).Methods("GET")
+	r.HandleFunc("/api/environments/{envid}", handler.GetEnvironment).Methods("GET")
 
 	r.HandleFunc("/api/execute", handler.ExecuteHandler).Queries("async", "{async}").Methods("POST")
 	r.HandleFunc("/api/execute", handler.ExecuteHandler).Methods("POST")

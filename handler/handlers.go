@@ -28,6 +28,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gorilla/mux"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pythia-project/pythia-core/go/src/pythia"
 	"github.com/pythia-project/pythia-server/server"
@@ -177,6 +178,26 @@ func ListEnvironments(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+// GetEnvironment retrieves one given environment.
+func GetEnvironment(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	envpath := fmt.Sprintf("%s/%s.env", server.Conf.Path.Environments, vars["envid"])
+	if _, err := os.Stat(envpath); err == nil {
+		if content, err := ioutil.ReadFile(envpath); err == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(content)
+		}
+
+	} else if os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
 }
 
 // ListTasks lists all the available tasks.
