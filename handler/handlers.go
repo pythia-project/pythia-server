@@ -189,12 +189,12 @@ func GetEnvironment(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			w.Write(content)
+			return
 		}
 
 	} else if os.IsNotExist(err) {
 		w.WriteHeader(http.StatusNotFound)
 		return
-
 	}
 
 	w.WriteHeader(http.StatusInternalServerError)
@@ -225,6 +225,26 @@ func ListTasks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+// GetTask retrieves one given task.
+func GetTask(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	taskpath := fmt.Sprintf("%s/%s.task", server.Conf.Path.Tasks, vars["taskid"])
+	if _, err := os.Stat(taskpath); err == nil {
+		if content, err := ioutil.ReadFile(taskpath); err == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(content)
+			return
+		}
+
+	} else if os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
 }
 
 // CreateTask creates a new task.
