@@ -247,6 +247,25 @@ func GetTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
+// DeleteTask deletes one given task.
+func DeleteTask(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	taskdir := fmt.Sprintf("%s/%s", server.Conf.Path.Tasks, vars["taskid"])
+	if _, err := os.Stat(taskdir); err == nil {
+		_ = os.RemoveAll(taskdir)
+		_ = os.Remove(taskdir + ".sfs")
+		_ = os.Remove(taskdir + ".task")
+
+		w.WriteHeader(http.StatusOK)
+		return
+	} else if os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
+}
+
 // CreateTask creates a new task.
 func CreateTask(w http.ResponseWriter, r *http.Request) {
 	request := server.TaskCreationRequest{

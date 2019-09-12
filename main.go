@@ -57,6 +57,7 @@ func main() {
 	r.HandleFunc("/api/tasks", handler.ListTasks).Methods("GET")
 	r.HandleFunc("/api/tasks", handler.CreateTask).Methods("POST")
 	r.HandleFunc("/api/tasks/{taskid}", handler.GetTask).Methods("GET")
+	r.HandleFunc("/api/tasks/{taskid}", handler.DeleteTask).Methods("DELETE")
 
 	server := &http.Server{
 		Handler:      r,
