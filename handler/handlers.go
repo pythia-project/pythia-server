@@ -348,14 +348,22 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		_ = os.Mkdir(taskDir+"/skeleton", 0755)
 		_ = os.Mkdir(taskDir+"/static", 0755)
 		_ = os.Mkdir(taskDir+"/static/lib", 0755)
-		templateDir := "templates/unit-testing/python"
+
+		templateDir := "templates/unit-testing/" + request.Environment
 		_ = copyFile(templateDir+"/control", taskDir+"/control", 0755)
-		_ = copyFile(templateDir+"/scripts/preprocess.py", taskDir+"/scripts/preprocess.py", 0755)
-		_ = copyFile(templateDir+"/scripts/generate.py", taskDir+"/scripts/generate.py", 0755)
-		_ = copyFile(templateDir+"/scripts/execute.py", taskDir+"/scripts/execute.py", 0755)
-		_ = copyFile(templateDir+"/scripts/feedback.py", taskDir+"/scripts/feedback.py", 0755)
-		_ = copyFile(templateDir+"/static/lib/__init__.py", taskDir+"/static/lib/__init__.py", 0755)
-		_ = copyFile(templateDir+"/static/lib/pythia.py", taskDir+"/static/lib/pythia.py", 0755)
+		_ = copyFile(templateDir+"/scripts/pythia-utbt", taskDir+"/scripts/pythia-utbt", 0755)
+
+		switch request.Environment {
+		case "python":
+			_ = copyFile(templateDir+"/scripts/execute.py", taskDir+"/scripts/execute.py", 0755)
+			_ = copyFile(templateDir+"/static/lib/__init__.py", taskDir+"/static/lib/__init__.py", 0755)
+			_ = copyFile(templateDir+"/static/lib/pythia.py", taskDir+"/static/lib/pythia.py", 0755)
+		case "java":
+			_ = copyFile(templateDir+"/scripts/execute.sh", taskDir+"/scripts/execute.sh", 0755)
+			_ = copyFile(templateDir+"/static/lib/commons-csv-1.7.jar", taskDir+"/static/lib/commons-csv-1.7.jar", 0755)
+			_ = copyFile(templateDir+"/static/lib/json-20180813.jar", taskDir+"/static/lib/json-20180813.jar", 0755)
+			_ = copyFile(templateDir+"/static/lib/pythia-1.0.jar", taskDir+"/static/lib/pythia-1.0.jar", 0755)
+		}
 
 		// Save the configuration
 		config := server.UnitTestingTaskConfig{}
@@ -366,15 +374,27 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 			_ = ioutil.WriteFile(taskDir+"/config/test.json", file, 0644)
 
 			// Create skeletons files
-			params := make([]string, 0)
-			for _, elem := range config.Spec.Args {
-				params = append(params, elem.Name)
+			content := ""
+			switch request.Environment {
+			case "python":
+				params := make([]string, 0)
+				for _, elem := range config.Spec.Args {
+					params = append(params, elem.Name)
+				}
+				content = fmt.Sprintf("# -*- coding: utf-8 -*-\n\ndef %s(%s):\n@    @f1@@\n", config.Spec.Name, strings.Join(params, ", "))
+				ioutil.WriteFile(taskDir+"/skeleton/program.py", []byte(content), 0755)
+			case "java":
+				params := make([]string, 0)
+				for _, elem := range config.Spec.Args {
+					params = append(params, elem.Type+" "+elem.Name)
+				}
+				content = fmt.Sprintf("public class Program\n{\n\tpublic static %s %s (%s)\n\t{\n@\t\t@f1@@\n\t}\n}\n", config.Spec.Return, config.Spec.Name, strings.Join(params, ", "))
+				ioutil.WriteFile(taskDir+"/skeleton/Program.java", []byte(content), 0755)
 			}
-			content := fmt.Sprintf("# -*- coding: utf-8 -*-\n\ndef %s(%s):\n@  @f1@@", config.Spec.Name, strings.Join(params, ", "))
-			ioutil.WriteFile(taskDir+"/skeleton/program.py", []byte(content), 0755)
 
 			// Create solution file
-			ioutil.WriteFile(taskDir+"/config/solution", []byte(config.Solution), 0644)
+			file, _ = json.MarshalIndent(config.Solution, "", "  ")
+			_ = ioutil.WriteFile(taskDir+"/config/solution.json", file, 0644)
 		}
 	}
 

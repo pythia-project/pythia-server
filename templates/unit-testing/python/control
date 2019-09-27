@@ -1,4 +1,4 @@
-/task/scripts/preprocess.py
-/task/scripts/generate.py
-!/task/scripts/execute.py
-/task/scripts/feedback.py
+/task/scripts/pythia-utbt preprocess
+/task/scripts/pythia-utbt generate
+!/task/scripts/pythia-utbt execute /task/scripts/execute.py student
+/task/scripts/pythia-utbt feedback /task/scripts/execute.py teacher

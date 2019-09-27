@@ -26,25 +26,48 @@ import sys
 sys.path.append('/task/static')
 from lib import pythia
 
-# Try to import student code
-sys.path.append('/tmp/work')
-try:
-    import program
-except SyntaxError as e:
-    with open('/tmp/work/output/out.err', 'w', encoding='utf-8') as file:
-        (head, tail) = os.path.split(e.filename)
-        file.write('invalid syntax ({}, line {})'.format(tail, e.lineno - 3))
-    sys.exit(0)
+if not sys.argv[1] in ['student', 'teacher']:
+    sys.exit(1)
 
-class TaskTestSuite(pythia.TestSuite):
-    def __init__(self, spec):
-        pythia.TestSuite.__init__(self, '/tmp/work/input/data.csv', spec)
+sys.path.append('/tmp/work/' + sys.argv[1])
 
-    def studentCode(self, data):
-        return getattr(program, spec['name'])(*data)
-
-# Read function specification
+# Read the specification of the function.
 with open('/task/config/spec.json', 'r', encoding='utf-8') as file:
     spec = json.loads(file.read())
 
-TaskTestSuite(spec).run('/tmp/work/output', 'data.res')
+# Import the code to execute.
+if sys.argv[1] == 'student':
+    try:
+        import program
+    except SyntaxError as e:
+        with open('/tmp/work/output/out.err', 'w', encoding='utf-8') as file:
+            (head, tail) = os.path.split(e.filename)
+            file.write('invalid syntax ({}, line {})'.format(tail, e.lineno - 3))
+        sys.exit(0)
+else:
+    import program
+
+# Create the specific runner for the code to execute.
+inputfile = '/tmp/work/input/data.csv'
+if sys.argv[1] == 'student':
+    class TaskTestSuite(pythia.TestSuite):
+        def __init__(self, spec):
+            pythia.TestSuite.__init__(self, inputfile, spec)
+
+        def code(self, data):
+            return getattr(program, spec['name'])(*data)
+
+    runner = TaskTestSuite(spec)
+    outputfile = 'data.res'
+else:
+    class TaskRunner(pythia.Runner):
+        def __init__(self, spec):
+            pythia.Runner.__init__(self, inputfile, spec)
+
+        def code(self, data):
+            return getattr(program, spec['name'])(*data)
+
+    runner = TaskRunner(spec)
+    outputfile = 'solution.res'
+
+runner.run('/tmp/work/output', outputfile)

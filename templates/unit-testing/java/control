@@ -1,0 +1,4 @@
+/task/scripts/pythia-utbt preprocess
+/task/scripts/pythia-utbt generate
+!/task/scripts/pythia-utbt execute /task/scripts/execute.sh student
+/task/scripts/pythia-utbt feedback /task/scripts/execute.sh teacher

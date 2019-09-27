@@ -74,6 +74,7 @@ type UnitTestingTaskConfig struct {
 			Name string `json:"name"`
 			Type string `json:"type"`
 		} `json:"args"`
+		Return string `json:"return"`
 	} `json:"spec"`
 	Test struct {
 		Predefined []struct {
@@ -85,7 +86,7 @@ type UnitTestingTaskConfig struct {
 			Args []string `json:"args"`
 		} `json:"random"`
 	} `json:"test"`
-	Solution string `json:"solution"`
+	Solution map[string]string `json:"solution"`
 }
 
 type InputOutputTaskConfig struct {
