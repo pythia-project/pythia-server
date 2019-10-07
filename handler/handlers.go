@@ -381,14 +381,14 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 				for _, elem := range config.Spec.Args {
 					params = append(params, elem.Name)
 				}
-				content = fmt.Sprintf("# -*- coding: utf-8 -*-\n\ndef %s(%s):\n@    @f1@@\n", config.Spec.Name, strings.Join(params, ", "))
+				content = fmt.Sprintf("# -*- coding: utf-8 -*-\n@@header@@\ndef %s(%s):\n@    @code@@\n", config.Spec.Name, strings.Join(params, ", "))
 				ioutil.WriteFile(taskDir+"/skeleton/program.py", []byte(content), 0755)
 			case "java":
 				params := make([]string, 0)
 				for _, elem := range config.Spec.Args {
 					params = append(params, elem.Type+" "+elem.Name)
 				}
-				content = fmt.Sprintf("public class Program\n{\n\tpublic static %s %s (%s)\n\t{\n@\t\t@f1@@\n\t}\n}\n", config.Spec.Return, config.Spec.Name, strings.Join(params, ", "))
+				content = fmt.Sprintf("@@header@@\n\npublic class Program\n{\n\tpublic static %s %s (%s)\n\t{\n@\t\t@code@@\n\t}\n}\n", config.Spec.Return, config.Spec.Name, strings.Join(params, ", "))
 				ioutil.WriteFile(taskDir+"/skeleton/Program.java", []byte(content), 0755)
 			}
 
