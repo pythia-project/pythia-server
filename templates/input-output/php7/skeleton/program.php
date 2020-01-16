@@ -1,5 +1,7 @@
 <?php
 @@header@@
 
-@@code@@
+@@body@@
+
+@@footer@@
 ?>
