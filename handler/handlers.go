@@ -335,6 +335,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		case "rexx":
 			_ = copyFile(templateDir+"/skeleton/program.rexx", taskDir+"/skeleton/program.rexx", 0755)
 		case "c":
+			_ = copyFile(templateDir+"/scripts/execute.sh", taskDir+"/skeleton/execute.sh", 0755)
 			_ = copyFile(templateDir+"/skeleton/program.c", taskDir+"/skeleton/program.c", 0755)
 		}
 
