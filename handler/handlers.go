@@ -273,7 +273,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		Type: "raw",
 		Limits: server.Limits{
 			Time:   60,
-			Memory: 32,
+			Memory: 64,
 			Disk:   50,
 			Output: 1024,
 		},
@@ -334,6 +334,8 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 			_ = copyFile(templateDir+"/skeleton/program.sh", taskDir+"/skeleton/program.sh", 0755)
 		case "rexx":
 			_ = copyFile(templateDir+"/skeleton/program.rexx", taskDir+"/skeleton/program.rexx", 0755)
+		case "c":
+			_ = copyFile(templateDir+"/skeleton/program.c", taskDir+"/skeleton/program.c", 0755)
 		}
 
 		// Save the configuration
