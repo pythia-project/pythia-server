@@ -273,7 +273,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		Type: "raw",
 		Limits: server.Limits{
 			Time:   60,
-			Memory: 64,
+			Memory: 32,
 			Disk:   50,
 			Output: 1024,
 		},
