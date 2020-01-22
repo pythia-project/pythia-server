@@ -1,4 +1,4 @@
-// Copyright 2019 The Pythia Authors.
+// Copyright 2019-2020 The Pythia Authors.
 // This file is part of Pythia.
 //
 // Pythia is free software: you can redistribute it and/or modify
@@ -58,6 +58,8 @@ func main() {
 	r.HandleFunc("/api/tasks", handler.CreateTask).Methods("POST")
 	r.HandleFunc("/api/tasks/{taskid}", handler.GetTask).Methods("GET")
 	r.HandleFunc("/api/tasks/{taskid}", handler.DeleteTask).Methods("DELETE")
+	r.HandleFunc("/api/tasks/{taskid}/execute", handler.ExecuteTask).Queries("async", "{async}").Methods("POST")
+	r.HandleFunc("/api/tasks/{taskid}/execute", handler.ExecuteTask).Methods("POST")
 
 	server := &http.Server{
 		Handler:      r,

@@ -62,6 +62,7 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	var async bool
 	if r.FormValue("async") == "" {
 		async = false
@@ -74,84 +75,7 @@ func ExecuteHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if async && request.Callback == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	// Connection to the pool and execution of the task
-	conn := pythia.DialRetry(server.Conf.Address.Queue)
-
-	var task pythia.Task
-
-	file, err := os.Open(fmt.Sprintf("%v/%v.task", server.Conf.Path.Tasks, request.Tid))
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	err = json.NewDecoder(file).Decode(&task)
-	if err != nil {
-		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	conn.Send(pythia.Message{
-		Message: pythia.LaunchMsg,
-		Id:      "test",
-		Task:    &task,
-		Input:   request.Input,
-	})
-
-	receive := func() (res []byte, err error) {
-		msg, ok := <-conn.Receive()
-
-		if !ok {
-			err = errors.New("Pythia request failed")
-			return
-		}
-
-		result := server.SubmisssionResult{request.Tid, string(msg.Status), msg.Output}
-
-		res, err = json.Marshal(result)
-		if err != nil {
-			return
-		}
-		return
-	}
-
-	if async {
-		go func() {
-			byteData, err := receive()
-			if err != nil {
-				log.Println(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			conn.Close()
-			data := strings.NewReader(string(byteData))
-			postResponse, err := http.Post(request.Callback, "application/json", data)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-			log.Println(postResponse)
-		}()
-	} else {
-		byteData, err := receive()
-		if err != nil {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		conn.Close()
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.WriteHeader(http.StatusOK)
-		w.Write(byteData)
-	}
-
+	executeTask(request, async, w)
 }
 
 // ListEnvironments lists all the available environments.
@@ -226,45 +150,6 @@ func ListTasks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
-}
-
-// GetTask retrieves one given task.
-func GetTask(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	taskpath := fmt.Sprintf("%s/%s.task", server.Conf.Path.Tasks, vars["taskid"])
-	if _, err := os.Stat(taskpath); err == nil {
-		if content, err := ioutil.ReadFile(taskpath); err == nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write(content)
-			return
-		}
-
-	} else if os.IsNotExist(err) {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	w.WriteHeader(http.StatusInternalServerError)
-}
-
-// DeleteTask deletes one given task.
-func DeleteTask(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	taskdir := fmt.Sprintf("%s/%s", server.Conf.Path.Tasks, vars["taskid"])
-	if _, err := os.Stat(taskdir); err == nil {
-		_ = os.RemoveAll(taskdir)
-		_ = os.Remove(taskdir + ".sfs")
-		_ = os.Remove(taskdir + ".task")
-
-		w.WriteHeader(http.StatusOK)
-		return
-	} else if os.IsNotExist(err) {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	w.WriteHeader(http.StatusInternalServerError)
 }
 
 // CreateTask creates a new task.
@@ -432,6 +317,80 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetTask retrieves one given task.
+func GetTask(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	taskpath := fmt.Sprintf("%s/%s.task", server.Conf.Path.Tasks, vars["taskid"])
+	if _, err := os.Stat(taskpath); err == nil {
+		if content, err := ioutil.ReadFile(taskpath); err == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write(content)
+			return
+		}
+
+	} else if os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
+}
+
+// DeleteTask deletes one given task.
+func DeleteTask(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	taskdir := fmt.Sprintf("%s/%s", server.Conf.Path.Tasks, vars["taskid"])
+	if _, err := os.Stat(taskdir); err == nil {
+		_ = os.RemoveAll(taskdir)
+		_ = os.Remove(taskdir + ".sfs")
+		_ = os.Remove(taskdir + ".task")
+
+		w.WriteHeader(http.StatusOK)
+		return
+	} else if os.IsNotExist(err) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusInternalServerError)
+}
+
+// ExecuteTask executes one given task.
+func ExecuteTask(w http.ResponseWriter, r *http.Request) {
+	request := server.SubmisssionRequest{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	vars := mux.Vars(r)
+	taskpath := fmt.Sprintf("%s/%s.sfs", server.Conf.Path.Tasks, vars["taskid"])
+	if _, err := os.Stat(taskpath); err != nil {
+		if os.IsNotExist(err) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+	}
+	request.Tid = vars["taskid"]
+
+	var async bool
+	if r.FormValue("async") == "" {
+		async = false
+	} else {
+		async, err = strconv.ParseBool(r.FormValue("async"))
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	}
+
+	executeTask(request, async, w)
+}
+
 func copyFile(src string, dst string, perms os.FileMode) (err error) {
 	var from, to *os.File
 	if from, err = os.Open(src); err == nil {
@@ -442,4 +401,84 @@ func copyFile(src string, dst string, perms os.FileMode) (err error) {
 		}
 	}
 	return
+}
+
+func executeTask(request server.SubmisssionRequest, async bool, w http.ResponseWriter) {
+	if async && request.Callback == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// Connection to the pool and execution of the task
+	conn := pythia.DialRetry(server.Conf.Address.Queue)
+
+	var task pythia.Task
+
+	file, err := os.Open(fmt.Sprintf("%v/%v.task", server.Conf.Path.Tasks, request.Tid))
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = json.NewDecoder(file).Decode(&task)
+	if err != nil {
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	conn.Send(pythia.Message{
+		Message: pythia.LaunchMsg,
+		Id:      "test",
+		Task:    &task,
+		Input:   request.Input,
+	})
+
+	receive := func() (res []byte, err error) {
+		msg, ok := <-conn.Receive()
+
+		if !ok {
+			err = errors.New("Pythia request failed")
+			return
+		}
+
+		result := server.SubmisssionResult{request.Tid, string(msg.Status), msg.Output}
+
+		res, err = json.Marshal(result)
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	if async {
+		go func() {
+			byteData, err := receive()
+			if err != nil {
+				log.Println(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			conn.Close()
+			data := strings.NewReader(string(byteData))
+			postResponse, err := http.Post(request.Callback, "application/json", data)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			log.Println(postResponse)
+		}()
+	} else {
+		byteData, err := receive()
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		conn.Close()
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(http.StatusOK)
+		w.Write(byteData)
+	}
 }
