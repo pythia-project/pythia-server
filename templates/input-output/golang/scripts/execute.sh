@@ -1,15 +1,12 @@
 #!/bin/sh
 
-# Setup environment variables.
-PATH=/usr/lib/jvm/java-8-openjdk-i386/bin:$PATH
-
 # Move to working directory.
 cd /tmp/work/student
 
 # Compile the code if not already compiled.
-if [ ! -f Program.class ]
+if [ ! -f program ]
 then
-	javac Program.java 2> /tmp/work/output/out.err
+	go build -o program program.go 2> /tmp/work/output/out.err
 	if [ -s /tmp/work/output/out.err ]
 	then
 		cat /tmp/work/output/out.err
@@ -20,4 +17,4 @@ then
 fi
 
 # Execute the code.
-java Program
+./program

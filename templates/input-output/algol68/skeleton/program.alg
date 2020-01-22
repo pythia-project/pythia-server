@@ -1,5 +1,7 @@
 @@header@@
 
-@@body@@
-
 @@footer@@
+
+main: (
+@	@body@@
+)

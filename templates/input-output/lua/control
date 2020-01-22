@@ -1,0 +1,3 @@
+/task/scripts/pythia-iot preprocess
+!/task/scripts/pythia-iot execute /usr/bin/lua5.3 /tmp/work/student/program.lua
+/task/scripts/pythia-iot feedback

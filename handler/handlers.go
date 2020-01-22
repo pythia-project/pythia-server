@@ -1,4 +1,4 @@
-// Copyright 2019 The Pythia Authors.
+// Copyright 2019-2020 The Pythia Authors.
 // This file is part of Pythia.
 //
 // Pythia is free software: you can redistribute it and/or modify
@@ -321,22 +321,42 @@ func CreateTask(w http.ResponseWriter, r *http.Request) {
 		_ = copyFile(templateDir+"/scripts/pythia-iot", taskDir+"/scripts/pythia-iot", 0755)
 
 		switch request.Environment {
-		case "python":
-			_ = copyFile(templateDir+"/skeleton/program.py", taskDir+"/skeleton/program.py", 0755)
-		case "php7":
-			_ = copyFile(templateDir+"/skeleton/program.php", taskDir+"/skeleton/program.php", 0755)
-		case "nodejs":
-			_ = copyFile(templateDir+"/skeleton/program.js", taskDir+"/skeleton/program.js", 0755)
-		case "java":
+		case "ada":
 			_ = copyFile(templateDir+"/scripts/execute.sh", taskDir+"/scripts/execute.sh", 0755)
-			_ = copyFile(templateDir+"/skeleton/Program.java", taskDir+"/skeleton/Program.java", 0755)
+			_ = copyFile(templateDir+"/skeleton/program.adb", taskDir+"/skeleton/program.adb", 0755)
+		case "algol68":
+			_ = copyFile(templateDir+"/skeleton/program.alg", taskDir+"/skeleton/program.alg", 0755)
 		case "bash":
 			_ = copyFile(templateDir+"/skeleton/program.sh", taskDir+"/skeleton/program.sh", 0755)
-		case "rexx":
-			_ = copyFile(templateDir+"/skeleton/program.rexx", taskDir+"/skeleton/program.rexx", 0755)
 		case "c":
 			_ = copyFile(templateDir+"/scripts/execute.sh", taskDir+"/scripts/execute.sh", 0755)
 			_ = copyFile(templateDir+"/skeleton/program.c", taskDir+"/skeleton/program.c", 0755)
+		case "cpp":
+			_ = copyFile(templateDir+"/scripts/execute.sh", taskDir+"/scripts/execute.sh", 0755)
+			_ = copyFile(templateDir+"/skeleton/program.cpp", taskDir+"/skeleton/program.cpp", 0755)
+		case "golang":
+			_ = copyFile(templateDir+"/scripts/execute.sh", taskDir+"/scripts/execute.sh", 0755)
+			_ = copyFile(templateDir+"/skeleton/program.go", taskDir+"/skeleton/program.go", 0755)
+		case "java":
+			_ = copyFile(templateDir+"/scripts/execute.sh", taskDir+"/scripts/execute.sh", 0755)
+			_ = copyFile(templateDir+"/skeleton/Program.java", taskDir+"/skeleton/Program.java", 0755)
+		case "lua":
+			_ = copyFile(templateDir+"/skeleton/program.lua", taskDir+"/skeleton/program.lua", 0755)
+		case "nodejs":
+			_ = copyFile(templateDir+"/skeleton/program.js", taskDir+"/skeleton/program.js", 0755)
+		case "php7":
+			_ = copyFile(templateDir+"/skeleton/program.php", taskDir+"/skeleton/program.php", 0755)
+		case "prolog":
+			_ = copyFile(templateDir+"/skeleton/program.pl", taskDir+"/skeleton/program.pl", 0755)
+		case "python":
+			_ = copyFile(templateDir+"/skeleton/program.py", taskDir+"/skeleton/program.py", 0755)
+		case "rexx":
+			_ = copyFile(templateDir+"/skeleton/program.rexx", taskDir+"/skeleton/program.rexx", 0755)
+		case "rust":
+			_ = copyFile(templateDir+"/scripts/execute.sh", taskDir+"/scripts/execute.sh", 0755)
+			_ = copyFile(templateDir+"/skeleton/program.rs", taskDir+"/skeleton/program.rs", 0755)
+		case "tcl":
+			_ = copyFile(templateDir+"/skeleton/program.tcl", taskDir+"/skeleton/program.tcl", 0755)
 		}
 
 		// Save the configuration
