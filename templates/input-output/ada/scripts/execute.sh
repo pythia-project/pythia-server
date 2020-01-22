@@ -6,7 +6,7 @@ cd /tmp/work/student
 # Compile the code if not already compiled.
 if [ ! -f program ]
 then
-	gnatmake program.adb -o program 2> /tmp/work/output/out.err
+	gnatmake /tmp/work/student/program.adb -D /tmp/work -o /tmp/work/student/program 2> /tmp/work/output/out.err
 	if [ -s /tmp/work/output/out.err ]
 	then
 		cat /tmp/work/output/out.err
@@ -17,4 +17,4 @@ then
 fi
 
 # Execute the code.
-./program
+/tmp/work/program

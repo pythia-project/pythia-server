@@ -6,7 +6,7 @@ cd /tmp/work/student
 # Compile the code if not already compiled.
 if [ ! -f program ]
 then
-	rustc -C linker=gcc -o program program.rs 2> /tmp/work/output/out.err
+	rustc -C linker=gcc -o /tmp/work/student/program /tmp/work/student/program.rs 2> /tmp/work/output/out.err
 	if [ -s /tmp/work/output/out.err ]
 	then
 		cat /tmp/work/output/out.err
@@ -17,4 +17,4 @@ then
 fi
 
 # Execute the code.
-./program
+/tmp/work/program
